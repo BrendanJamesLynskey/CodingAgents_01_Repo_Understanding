@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodingAgents 01 — Repo Understanding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-card: #0d1117;
+            --bg-code: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #76B900;
+            --accent-dim: #76B90044;
+            --accent-glow: #76B90033;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 900px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 17px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .hero > * { position: relative; z-index: 1; }
+        .series-label {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+        .hero h1 .accent { color: var(--accent); }
+        .hero .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin-bottom: 2rem;
+        }
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+        }
+        .tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+            white-space: nowrap;
+        }
+        .pipeline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+            max-width: var(--max-width);
+        }
+        .pipeline-step {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 0.3rem 0.7rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .pipeline-arrow { color: var(--accent); font-size: 0.9rem; font-weight: 700; }
+        .slide {
+            min-height: 100vh;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-dim);
+            position: absolute;
+            top: 2rem;
+            right: 1.5rem;
+            line-height: 1;
+            user-select: none;
+        }
+        .slide h2 {
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            line-height: 1.25;
+        }
+        .slide h3 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .slide p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .slide p strong { color: var(--text-primary); }
+        .slide ul, .slide ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--text-secondary); }
+        .slide li { margin-bottom: 0.4rem; }
+        .slide li strong { color: var(--text-primary); }
+        .slide code {
+            font-family: var(--font-mono);
+            font-size: 0.88em;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            padding: 0.05rem 0.35rem;
+            border-radius: 3px;
+            color: #c9d1d9;
+        }
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 1.25rem 0;
+            overflow: hidden;
+        }
+        .code-header {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .code-block pre { margin: 0; padding: 1rem; overflow-x: auto; }
+        .code-block code {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #c9d1d9;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+        .kw { color: #ff7b72; }
+        .fn { color: #d2a8ff; }
+        .str { color: #a5d6ff; }
+        .cm { color: #8b949e; font-style: italic; }
+        .num { color: #79c0ff; }
+        .type { color: #ffa657; }
+        .dir { color: #ff7b72; }
+        .mac { color: #ffa657; }
+        .table-wrap {
+            overflow-x: auto;
+            margin: 1.25rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th {
+            background: var(--bg-code);
+            color: var(--accent);
+            font-weight: 600;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-display);
+            white-space: nowrap;
+        }
+        td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: rgba(13, 17, 23, 0.5); }
+        .diagram-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .diagram-box {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
+        }
+        .diagram-box.accent { border-color: var(--accent); color: var(--accent); background: rgba(118, 185, 0, 0.08); }
+        .diagram-box.dim { color: var(--text-secondary); border-color: var(--border); }
+        .diagram-arrow { color: var(--accent); font-size: 1.3rem; font-weight: 700; }
+        .diagram-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .diagram-vertical .diagram-arrow { font-size: 1.1rem; }
+        .hierarchy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .hierarchy-level { display: flex; align-items: center; gap: 0.75rem; }
+        .hierarchy-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: right;
+        }
+        .hierarchy-items { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+        .hierarchy-item {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .hierarchy-item.accent { border-color: var(--accent); color: var(--accent); background: rgba(118, 185, 0, 0.08); }
+        .diagram-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .diagram-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .diagram-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .diagram-panel {
+            padding: 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+        .diagram-panel.accent-border { border-left: 3px solid var(--accent); }
+        .diagram-panel h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+        .diagram-panel p, .diagram-panel ul { font-size: 0.85rem; }
+        .callout {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+        .callout p { margin-bottom: 0; }
+        .callout p + p { margin-top: 0.5rem; }
+        .callout .callout-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+        .contents-list { list-style: none; padding-left: 0; counter-reset: contents; }
+        .contents-list li {
+            counter-increment: contents;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .contents-list li:last-child { border-bottom: none; }
+        .contents-list li::before {
+            content: counter(contents, decimal-leading-zero);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 2rem;
+        }
+        .contents-list a { color: var(--text-primary); text-decoration: none; transition: color 0.2s; }
+        .contents-list a:hover { color: var(--accent); }
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .canvas-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.25rem 0;
+            overflow-x: auto;
+        }
+        .canvas-wrap canvas, .canvas-wrap svg { display: block; margin: 0 auto; max-width: 100%; }
+        .badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: middle;
+            margin-left: 0.3rem;
+        }
+        .badge.ok    { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .badge.warn  { border-color: #ffa657; color: #ffa657; background: rgba(255,166,87,0.08); }
+        .badge.bad   { border-color: #ff7b72; color: #ff7b72; background: rgba(255,123,114,0.08); }
+        @media (max-width: 640px) {
+            .slide { padding: 3rem 1rem; min-height: auto; }
+            .slide-number { font-size: 3rem; top: 1.5rem; right: 1rem; }
+            .slide h2 { font-size: 1.5rem; }
+            .diagram-grid.cols-2, .diagram-grid.cols-3 { grid-template-columns: 1fr; }
+            .pipeline { gap: 0.15rem; }
+            .pipeline-step { font-size: 0.6rem; padding: 0.2rem 0.4rem; }
+            .hero h1 { font-size: 1.8rem; }
+            table { font-size: 0.78rem; }
+        }
+    </style>
+</head>
+<body>
+<header class="hero">
+    <div class="series-label">Coding Agents Internals Series &mdash; Presentation 01</div>
+    <h1>Signal in a <span class="accent">Million-Line Codebase</span></h1>
+    <p class="subtitle">ripgrep heuristics, tree-sitter AST parsing, ctags &amp; language servers, code embeddings, dependency graphs, caching, and the concrete repo-navigation strategies used by Aider, Cursor, and Claude Code.</p>
+
+    <div class="tags">
+        <span class="tag">ripgrep</span>
+        <span class="tag">tree-sitter</span>
+        <span class="tag">ctags</span>
+        <span class="tag">LSP</span>
+        <span class="tag">Code Embeddings</span>
+        <span class="tag">Call Graphs</span>
+        <span class="tag">Aider repo-map</span>
+        <span class="tag">Cursor</span>
+        <span class="tag">Claude Code</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">Query</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">ripgrep</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">tree-sitter</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Symbol Index</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Embeddings</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Graph</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Context Window</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We&rsquo;ll Cover</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">The Problem &mdash; Signal in a Million-Line Codebase</a></li>
+        <li><a href="#slide-02">ripgrep Heuristics That Beat Embeddings</a></li>
+        <li><a href="#slide-03">AST Parsing &mdash; Tree-Sitter</a></li>
+        <li><a href="#slide-04">Symbol Indexing &mdash; ctags &amp; Language Servers</a></li>
+        <li><a href="#slide-05">Code Embeddings &mdash; When They Help, When They Don&rsquo;t</a></li>
+        <li><a href="#slide-06">Dependency &amp; Call Graphs</a></li>
+        <li><a href="#slide-07">Caching Strategies for Large Repos</a></li>
+        <li><a href="#slide-08">Claude Code Heuristics, Aider Repo Map, Cursor @-References</a></li>
+        <li><a href="#slide-09">What to Take Away</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>The Problem &mdash; Signal in a Million-Line Codebase</h2>
+    <p>A coding agent receiving the instruction <em>&ldquo;fix the memory leak in the connection pool&rdquo;</em> must do something a human senior engineer does instinctively: locate the relevant 200&ndash;400 lines in a repository that might be 10&ndash;50 MB of source. Getting that wrong &mdash; either missing relevant context or flooding the LLM with irrelevant noise &mdash; determines whether the subsequent edit is correct.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>The context-window budget</h4>
+            <p>Even a 200 k-token model can hold roughly 1&ndash;1.5 MB of source at once. A 10 MLOC C++ codebase is 200&ndash;500 MB. <strong>Retrieval precision matters more than recall</strong> here: one wrong file that dominates context can confuse the model more than omitting a helper file.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Three retrieval regimes</h4>
+            <ul>
+                <li><strong>Lexical</strong> &mdash; exact string match (ripgrep / grep)</li>
+                <li><strong>Structural</strong> &mdash; AST / symbol queries (tree-sitter, ctags, LSP)</li>
+                <li><strong>Semantic</strong> &mdash; dense vector nearest-neighbour (code embeddings)</li>
+            </ul>
+            <p>Most agents layer all three; the trick is knowing which to invoke first.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The Goldilocks problem</div>
+        <p>Load too little and the model hallucinates &mdash; it invents a function signature it has never seen. Load too much and the model loses the thread of the actual task in a sea of tangentially related code. The optimal context for a single edit is typically <strong>3&ndash;8 files</strong>, which means the retrieval step must achieve &gt;80% precision even before the model reads a line.</p>
+    </div>
+
+    <h3>Benchmarks that quantify the gap</h3>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Benchmark</th><th>Task</th><th>Key signal</th></tr></thead>
+            <tbody>
+                <tr><td>SWE-bench (verified)</td><td>Fix real GitHub issues in 300 Python repos</td><td>Only 26&ndash;50% of agent attempts succeed; most failures are context-retrieval, not model reasoning</td></tr>
+                <tr><td>RepoBench</td><td>Next-line completion given a cross-file dependency</td><td>Retrieval quality alone accounts for ~15% absolute accuracy delta across methods</td></tr>
+                <tr><td>RepoQA</td><td>Long-context function-level comprehension</td><td>Models degrade sharply when the relevant function is buried beyond 64 k tokens of context</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>ripgrep Heuristics That Beat Embeddings</h2>
+    <p>Andrew Gallant&rsquo;s <strong>ripgrep</strong> (first released 2016, current stable 14.x) processes 1&ndash;3 GB/s of source text on modern hardware thanks to SIMD-accelerated regex, mmap I/O, and aggressive gitignore-aware file filtering. For <em>exact identifier lookup</em> it out-performs semantic search by a wide margin on latency, cost, and precision.</p>
+
+    <div class="code-block">
+        <div class="code-header">ripgrep — key flags an agent runtime actually sets</div>
+<pre><code><span class="cm"># Find all callers of `connection_pool_acquire` (word-bounded, multiline context)</span>
+<span class="fn">rg</span> <span class="str">'connection_pool_acquire'</span> \
+   --type rust \
+   --word-regexp \
+   --context <span class="num">4</span> \
+   --max-count <span class="num">30</span> \
+   --json            <span class="cm"># machine-readable output consumed by the agent</span>
+
+<span class="cm"># Locate the definition (function/method signature) only</span>
+<span class="fn">rg</span> <span class="str">'^(pub )?(async )?fn connection_pool_acquire'</span> \
+   --type rust \
+   --line-number \
+   --no-heading</code></pre>
+    </div>
+
+    <h3>Why lexical search wins on identifiers</h3>
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Cold-cache latency</h4>
+            <p>ripgrep on a 5 MLOC repo: ~0.3 s. Dense vector search after index warm-up: 10&ndash;80 ms. But building the vector index requires a multi-minute GPU or API pass upfront &mdash; ripgrep requires nothing.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Precision on identifier names</h4>
+            <p>Identifiers like <code>pg_conn_pool</code> are essentially unique tokens. Embedding models sometimes cluster <em>semantically similar</em> but differently-named functions, returning false positives.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Multi-file diffusion</h4>
+            <p>A call-graph query like &ldquo;all files that import this module&rdquo; is a pure grep pattern (<code>^import.*mymodule</code>). Semantic search has no concept of import topology.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Heuristic ordering used by Claude Code (observed behaviour)</div>
+        <p><strong>1.</strong> Try ripgrep for the exact symbol name. If &ge;1 hit, load those files. <strong>2.</strong> Try ripgrep for adjacent identifiers extracted from the user query. <strong>3.</strong> Fall back to semantic search only if lexical search returns zero results or the query is clearly conceptual (<em>&ldquo;anything related to authentication&rdquo;</em>).</p>
+    </div>
+
+    <h3>Pathological cases for lexical search</h3>
+    <ul>
+        <li><strong>Overloaded names</strong> &mdash; <code>get()</code> returns thousands of hits in any large codebase; ripgrep alone is useless without a structural filter.</li>
+        <li><strong>Conceptual queries</strong> &mdash; &ldquo;where is the retry logic?&rdquo; has no single identifier to grep for.</li>
+        <li><strong>Dynamic dispatch</strong> &mdash; Python duck-typed calls or virtual method tables mean the definition is never textually adjacent to the call site.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>AST Parsing &mdash; Tree-Sitter</h2>
+    <p><strong>tree-sitter</strong> (Max Brunsfeld, GitHub, 2018 &mdash; v0.22 as of 2024) is an incremental, error-tolerant Earley/GLR parser generator. It compiles a grammar to a C shared library and exposes a uniform C API (with bindings for Rust, Python, Node, Go, etc.). The key property for agents: <strong>it re-parses only the changed subtree after an edit</strong>, making it &lt;1 ms for incremental updates on files up to ~100 k lines.</p>
+
+    <div class="code-block">
+        <div class="code-header">Python binding — extracting all function names and docstrings</div>
+<pre><code><span class="kw">from</span> tree_sitter <span class="kw">import</span> Language, Parser
+<span class="kw">import</span> tree_sitter_python <span class="kw">as</span> tspython
+
+PY_LANG = Language(tspython.language())
+parser  = Parser(PY_LANG)
+
+<span class="kw">def</span> <span class="fn">extract_functions</span>(source: <span class="type">bytes</span>) <span class="kw">-&gt;</span> <span class="type">list</span>[<span class="type">dict</span>]:
+    tree  = parser.parse(source)
+    query = PY_LANG.query(<span class="str">"""
+        (function_definition
+          name: (identifier) @fn.name
+          body: (block . (expression_statement
+                  (string) @fn.docstring)?))
+    """</span>)
+    results = []
+    <span class="kw">for</span> match <span class="kw">in</span> query.matches(tree.root_node):
+        name_node = match[<span class="num">1</span>].get(<span class="str">'fn.name'</span>)
+        doc_node  = match[<span class="num">1</span>].get(<span class="str">'fn.docstring'</span>)
+        <span class="kw">if</span> name_node:
+            results.append({
+                <span class="str">'name'</span>: name_node.text.decode(),
+                <span class="str">'row'</span>:  name_node.start_point[<span class="num">0</span>],
+                <span class="str">'doc'</span>:  doc_node.text.decode() <span class="kw">if</span> doc_node <span class="kw">else</span> <span class="kw">None</span>,
+            })
+    <span class="kw">return</span> results</code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Why tree-sitter over regex for structure</div>
+        <p>A regex for Python function definitions breaks on decorators, nested functions, type annotations with complex generics, and multiline signatures. tree-sitter&rsquo;s concrete syntax tree is correct by construction for all of these. The <strong>error recovery</strong> property is equally important: even in syntactically broken files (mid-edit state), tree-sitter produces a partial tree with <code>ERROR</code> nodes rather than aborting &mdash; an agent can still extract the 95% of symbols that are intact.</p>
+    </div>
+
+    <h3>Grammar coverage as of 2025</h3>
+    <div class="hierarchy">
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">Tier 1</div>
+            <div class="hierarchy-items">
+                <span class="hierarchy-item accent">Python</span>
+                <span class="hierarchy-item accent">Rust</span>
+                <span class="hierarchy-item accent">TypeScript</span>
+                <span class="hierarchy-item accent">JavaScript</span>
+                <span class="hierarchy-item accent">Go</span>
+                <span class="hierarchy-item accent">C / C++</span>
+                <span class="hierarchy-item accent">Java</span>
+                <span class="hierarchy-item accent">C#</span>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">Tier 2</div>
+            <div class="hierarchy-items">
+                <span class="hierarchy-item">Ruby</span>
+                <span class="hierarchy-item">Swift</span>
+                <span class="hierarchy-item">Kotlin</span>
+                <span class="hierarchy-item">Scala</span>
+                <span class="hierarchy-item">Elixir</span>
+                <span class="hierarchy-item">Haskell</span>
+                <span class="hierarchy-item">OCaml</span>
+                <span class="hierarchy-item">Zig</span>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">Config</div>
+            <div class="hierarchy-items">
+                <span class="hierarchy-item">JSON</span>
+                <span class="hierarchy-item">YAML</span>
+                <span class="hierarchy-item">TOML</span>
+                <span class="hierarchy-item">Dockerfile</span>
+                <span class="hierarchy-item">SQL</span>
+                <span class="hierarchy-item">Terraform HCL</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Symbol Indexing &mdash; ctags &amp; Language Servers</h2>
+    <p>After lexical search and AST parsing, the next layer is a <em>persistent symbol index</em> that maps identifier names to file, line, and kind (function, class, variable, etc.) across the entire repository without re-parsing on every query.</p>
+
+    <h3>Universal Ctags</h3>
+    <p><strong>Universal Ctags</strong> (fork of Exuberant Ctags, actively maintained since 2014, v6.1 in 2024) supports 150+ languages via regex and optionally tree-sitter parsers. Its output format is a plain-text <code>tags</code> file, binary-searchable with <code>fzf</code> or loaded directly into agent memory.</p>
+
+    <div class="code-block">
+        <div class="code-header">Generating a tags file and querying it from a Python agent</div>
+<pre><code><span class="cm"># Generate (takes ~8 s on a 1 MLOC Python/Rust mixed repo)</span>
+ctags \
+  --recurse \
+  --sort=yes \
+  --fields=+n+K+Z \        <span class="cm"># include line, kind, scope</span>
+  --extras=+q \            <span class="cm"># add qualified names (module.ClassName.method)</span>
+  --output-format=<span class="str">json</span> \
+  --exclude=<span class="str">'.git'</span> --exclude=<span class="str">'node_modules'</span> \
+  -f <span class="str">'.ctags_cache/tags.json'</span> .
+
+<span class="cm"># Query: find definition of `ConnectionPool` (Python)</span>
+<span class="kw">import</span> json, bisect
+tags = [json.loads(l) <span class="kw">for</span> l <span class="kw">in</span> open(<span class="str">'.ctags_cache/tags.json'</span>)]
+hits = [t <span class="kw">for</span> t <span class="kw">in</span> tags
+        <span class="kw">if</span> t[<span class="str">'name'</span>] == <span class="str">'ConnectionPool'</span> <span class="kw">and</span> t[<span class="str">'kind'</span>] == <span class="str">'class'</span>]</code></pre>
+    </div>
+
+    <h3>Language Server Protocol &mdash; go-to-definition at scale</h3>
+    <p>LSP (<strong>Language Server Protocol</strong>, Microsoft, 2016 &mdash; spec 3.17 current) turns a language compiler into a query server. For agents that run long sessions on a single repository, spinning up <code>rust-analyzer</code>, <code>pyright</code>, or <code>clangd</code> unlocks <em>type-resolved</em> symbol queries unavailable from ctags.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>LSP Request</th><th>Agent use-case</th><th>Key server</th></tr></thead>
+            <tbody>
+                <tr><td><code>textDocument/definition</code></td><td>Jump to the true definition even through type aliases, imports, macros</td><td>rust-analyzer, pyright, clangd</td></tr>
+                <tr><td><code>textDocument/references</code></td><td>Find all call sites of a function before renaming or deleting it</td><td>Any LSP server</td></tr>
+                <tr><td><code>textDocument/documentSymbol</code></td><td>List all symbols in one file &mdash; faster than re-parsing with tree-sitter</td><td>Any LSP server</td></tr>
+                <tr><td><code>workspace/symbol</code></td><td>Cross-file symbol search by name &mdash; replaces ctags for live sessions</td><td>rust-analyzer, gopls</td></tr>
+                <tr><td><code>textDocument/callHierarchy</code></td><td>Incoming and outgoing call edges for a given function</td><td>clangd 12+, rust-analyzer</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">When NOT to use an LSP server</div>
+        <p>Starting <code>rust-analyzer</code> on a large workspace takes 30&ndash;120 s of initial indexing and &gt;500 MB RAM. For one-shot CI tasks or ephemeral containers, ctags is faster to initialise and uses &lt;10 MB. LSP shines for long-running interactive agent sessions (Cursor, Claude Code in a persistent session) where the startup cost is amortised.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Code Embeddings &mdash; When They Help, When They Don&rsquo;t</h2>
+    <p>Dense vector retrieval over code embeddings is the third layer. Unlike lexical or structural search, it can answer <em>conceptual</em> queries: <em>&ldquo;where is retry logic implemented?&rdquo;</em>, <em>&ldquo;show me all error-handling patterns&rdquo;</em>. The cost is a preprocessing step and a vector database.</p>
+
+    <h3>Model landscape (2024&ndash;2025)</h3>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Model</th><th>Dim</th><th>Max tokens</th><th>Strength</th></tr></thead>
+            <tbody>
+                <tr><td>voyage-code-3 (Voyage AI, 2024)</td><td>1 024 / 2 048</td><td>16 000</td><td>Best on CoIR benchmark; multilingual, long-context; recommended for production</td></tr>
+                <tr><td>text-embedding-3-large (OpenAI)</td><td>3 072</td><td>8 191</td><td>Strong general + code; Matryoshka &mdash; can truncate to 256 d with minor loss</td></tr>
+                <tr><td>CodeBERT (Microsoft, 2020)</td><td>768</td><td>512</td><td>Historically important, now outperformed; trained on NL+code bimodal pairs</td></tr>
+                <tr><td>UniXcoder (Microsoft, 2022)</td><td>768</td><td>1 024</td><td>Encoder-decoder; strong on code summarisation and clone detection</td></tr>
+                <tr><td>cohere-embed-v3 (code mode)</td><td>1 024</td><td>512</td><td>Input-type parameter distinguishes code vs. prose; useful for mixed corpora</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>CoIR benchmark results (December 2024)</h3>
+    <div class="canvas-wrap">
+        <svg viewBox="0 0 680 200" width="680" height="200" xmlns="http://www.w3.org/2000/svg">
+            <style>
+                .bar  { fill: rgba(118,185,0,0.6); }
+                .bar2 { fill: rgba(118,185,0,0.3); }
+                .ax   { stroke: #30363d; stroke-width: 1; }
+                .lbl  { fill: #8b949e; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+                .val  { fill: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+                .ttl  { fill: #76B900; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; }
+            </style>
+            <text x="10" y="16" class="ttl">CoIR Average NDCG@10 (higher = better) &mdash; selected models</text>
+            <line x1="160" y1="30" x2="160" y2="175" class="ax"/>
+            <line x1="160" y1="175" x2="660" y2="175" class="ax"/>
+
+            <text x="10"  y="58"  class="lbl">voyage-code-3</text>
+            <rect x="161" y="40"  width="420" height="22" class="bar"/>
+            <text x="588" y="57"  class="val">77.4</text>
+
+            <text x="10"  y="93"  class="lbl">text-emb-3-large</text>
+            <rect x="161" y="75"  width="366" height="22" class="bar2"/>
+            <text x="534" y="92"  class="val">67.6</text>
+
+            <text x="10"  y="128" class="lbl">cohere-embed-v3</text>
+            <rect x="161" y="110" width="335" height="22" class="bar2"/>
+            <text x="503" y="127" class="val">61.9</text>
+
+            <text x="10"  y="163" class="lbl">CodeBERT</text>
+            <rect x="161" y="145" width="210" height="22" class="bar2"/>
+            <text x="378" y="162" class="val">38.7</text>
+
+            <text x="165" y="192" class="lbl">0</text>
+            <text x="445" y="192" class="lbl">50</text>
+            <text x="605" y="192" class="lbl">80</text>
+        </svg>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Where embeddings fail for agents</div>
+        <p><strong>Exact-name lookup:</strong> asking &ldquo;find the <code>parse_jwt</code> function&rdquo; via embedding returns the 10 most semantically similar functions &mdash; many will not be <code>parse_jwt</code>. ripgrep finds it in 0.1 s with 100% precision. <strong>Config &amp; schema files:</strong> YAML and JSON embed poorly; ripgrep patterns like <code>^  port:</code> are far more reliable. <strong>Cold indexing cost:</strong> embedding a 1 MLOC repo at 0.5 M tokens per API call costs $0.50&ndash;$2.00 and 5&ndash;20 minutes. Budget carefully in CI pipelines.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>Dependency &amp; Call Graphs</h2>
+    <p>When an agent needs to understand the <em>blast radius</em> of a change &mdash; which modules will break if I rename this function? which callers must be updated? &mdash; a call graph or dependency graph is the right data structure. Pure lexical and semantic search miss transitive effects.</p>
+
+    <h3>Build-time dependency graphs</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Python &mdash; importlib / AST import scan</h4>
+            <p>Walk the AST for <code>import</code> and <code>from X import Y</code> nodes. Resolve relative imports against <code>sys.path</code>. Tools: <code>modulegraph</code>, <code>pydeps</code> (generates a DOT graph), <code>pyproject-deps</code>. Works without executing the code &mdash; important for agent safety.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Rust &mdash; <code>cargo metadata</code></h4>
+            <p><code>cargo metadata --format-version 1 | jq '.packages[].dependencies'</code> gives the full crate dependency tree including dev and build dependencies, with resolved versions. The inter-crate call graph requires <code>cargo-call-stack</code> or MIR analysis.</p>
+        </div>
+    </div>
+
+    <h3>Runtime call graphs</h3>
+    <div class="code-block">
+        <div class="code-header">Python call-graph extraction with pycallgraph2 / py-spy</div>
+<pre><code><span class="cm"># Static analysis approach (no execution needed) using ast + networkx</span>
+<span class="kw">import</span> ast, networkx <span class="kw">as</span> nx
+
+<span class="kw">def</span> <span class="fn">build_call_graph</span>(files: <span class="type">list</span>[<span class="type">str</span>]) <span class="kw">-&gt;</span> nx.DiGraph:
+    G = nx.DiGraph()
+    <span class="kw">for</span> path <span class="kw">in</span> files:
+        tree = ast.parse(open(path).read())
+        <span class="kw">for</span> node <span class="kw">in</span> ast.walk(tree):
+            <span class="kw">if</span> isinstance(node, ast.FunctionDef):
+                caller = node.name
+                G.add_node(caller, file=path, line=node.lineno)
+                <span class="kw">for</span> child <span class="kw">in</span> ast.walk(node):
+                    <span class="kw">if</span> isinstance(child, ast.Call):
+                        <span class="kw">if</span> isinstance(child.func, ast.Name):
+                            G.add_edge(caller, child.func.id)
+    <span class="kw">return</span> G
+
+<span class="cm"># Agent use: find all transitive callers of `acquire_connection`</span>
+callers = list(nx.ancestors(G, <span class="str">'acquire_connection'</span>))  <span class="cm"># reverse reachability</span></code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Practical limit: dynamic dispatch</div>
+        <p>Static call graphs are incomplete for languages with dynamic dispatch (Python duck-typing, virtual methods, callbacks, closures, eval). For Rust (monomorphised generics) and Go (explicit interfaces), static analysis gets you 90%+. For Python you typically need a <strong>type-annotated codebase</strong> plus pyright&rsquo;s call-hierarchy analysis, or a runtime profiler (py-spy) to complete the graph. Most agent frameworks accept this limitation and use static graphs for &ldquo;safe to rename?&rdquo; checks, not correctness guarantees.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Caching Strategies for Large Repos</h2>
+    <p>Retrieval speed on large repos is a function of what is pre-computed and how stale that cache is. There are four distinct caches in a mature agent system:</p>
+
+    <div class="diagram-vertical">
+        <div class="diagram-box accent">File-mtime index &mdash; which files changed since last run</div>
+        <div class="diagram-arrow">&darr;</div>
+        <div class="diagram-box">Incremental tree-sitter parse cache (per-file SHA256 keyed)</div>
+        <div class="diagram-arrow">&darr;</div>
+        <div class="diagram-box">ctags / symbol database (SQLite, re-indexed only for changed files)</div>
+        <div class="diagram-arrow">&darr;</div>
+        <div class="diagram-box">Embedding vector store (Chroma / Qdrant / FAISS &mdash; updated per-chunk on change)</div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Cache layer</th><th>Invalidation key</th><th>Regen cost (1 MLOC)</th><th>Staleness risk</th></tr></thead>
+            <tbody>
+                <tr><td>File-mtime scan</td><td>inotify / FSEvents / polling</td><td>&lt;0.1 s</td><td>None &mdash; always accurate</td></tr>
+                <tr><td>tree-sitter AST</td><td>file SHA-256</td><td>~2 s (incremental)</td><td>Low &mdash; per-file</td></tr>
+                <tr><td>ctags / LSP index</td><td>file SHA-256 + language version</td><td>8&ndash;30 s (delta)</td><td>Low with inotify trigger</td></tr>
+                <tr><td>Embeddings (code chunks)</td><td>chunk hash (sliding window content)</td><td>5&ndash;20 min (full); seconds (delta)</td><td>Medium &mdash; embedding model upgrades invalidate all</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>Cache storage patterns</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>SQLite for symbol caches</h4>
+            <p>Universal Ctags <code>--output-format=json</code> piped into SQLite gives a queryable index with full-text search. A 1 MLOC repo produces ~50 MB. Incremental updates patch only the rows for modified files. WAL mode gives concurrent read access during re-index.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Chroma / Qdrant for embeddings</h4>
+            <p>Both support <strong>upsert-by-id</strong> &mdash; hash the chunk content, use that as the vector ID, and upserts become no-ops for unchanged chunks. Qdrant&rsquo;s <code>HNSW</code> index (M=16, ef=100) gives 1&ndash;5 ms query latency on 10 M vectors with 512&ndash;1 024 d embeddings.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The prompt-cache tier (Anthropic &amp; OpenAI)</div>
+        <p>Both Anthropic and OpenAI now offer <strong>server-side prompt caching</strong>: if the first N tokens of a request match a prior request, the KV state is reused and the tokens are billed at 10% of normal cost. For agents that load a fixed repo-map or system prompt on every turn, this alone can reduce inference cost by 70&ndash;80%. The practical trick: always put stable content (repo map, file index) first in the context, variable content (current conversation) last.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>Claude Code, Aider Repo Map, Cursor @-References</h2>
+    <p>Three production agents have made different architectural choices about how to build their context window from a codebase. All three are open to inspection &mdash; via source code, published papers, or observed behaviour.</p>
+
+    <h3>Aider Repo Map (Paul Gauthier)</h3>
+    <p>Aider generates a compact <strong>repo map</strong> using Universal Ctags: a symbol inventory listing every file&rsquo;s exports (functions, classes, constants) in ~5&ndash;15 lines per file. A <strong>PageRank-style weighting</strong> based on the cross-reference graph promotes files that are referenced by many others, pruning the map to fit within the token budget. The map is regenerated every turn if files have changed. On a 100 k-line Python repo, the map is typically 2&ndash;4 k tokens.</p>
+
+    <div class="code-block">
+        <div class="code-header">Aider repo map output (abridged example)</div>
+<pre><code><span class="cm">⋮</span>
+src/db/pool.py:
+<span class="fn">ConnectionPool</span>.__init__(self, dsn, min_size, max_size)
+<span class="fn">ConnectionPool</span>.acquire(self) <span class="kw">-&gt;</span> Connection
+<span class="fn">ConnectionPool</span>.release(self, conn)
+<span class="fn">ConnectionPool</span>._evict_idle(self, max_idle_secs)
+<span class="cm">⋮</span>
+src/db/migrations.py:
+<span class="fn">run_migrations</span>(engine, target_revision: str)
+<span class="fn">_check_alembic_version</span>(engine) <span class="kw">-&gt;</span> str
+<span class="cm">⋮</span></code></pre>
+    </div>
+
+    <h3>Cursor @-References</h3>
+    <p>Cursor exposes explicit <strong>@-symbols</strong> to the user: <code>@file</code>, <code>@folder</code>, <code>@codebase</code>, <code>@web</code>, <code>@docs</code>, <code>@git</code>. Behind the scenes, <code>@codebase</code> triggers a <strong>hybrid retrieval pipeline</strong>: ripgrep for identifiers extracted from the query, then a code-embedding nearest-neighbour pass (Cursor runs its own embedding service), results re-ranked by a cross-encoder. The user sees the top N files; the agent sees their full text.</p>
+
+    <h3>Claude Code heuristics</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>File-tree bootstrapping</h4>
+            <p>On session start Claude Code reads <code>CLAUDE.md</code> (if present), then a directory listing to depth 2&ndash;3, plus any <code>package.json</code> / <code>Cargo.toml</code> / <code>pyproject.toml</code> it finds. This gives module structure without loading source.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Tool-driven retrieval</h4>
+            <p>Rather than a pre-computed index, Claude Code issues explicit <code>Read</code> and <code>Bash</code> (ripgrep) tool calls &mdash; the retrieval is <em>in-context</em> reasoning. The model decides what to look up next based on what it has seen. This trades index-free simplicity for more tool-call round-trips.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Trade-off summary</div>
+        <p><strong>Aider:</strong> pre-computed ctags map &mdash; deterministic, cheap, works offline, misses semantic queries. <strong>Cursor:</strong> hybrid index with user-facing @ references &mdash; most flexible, requires running services. <strong>Claude Code:</strong> zero pre-computation, in-context retrieval via tool calls &mdash; no setup, more tokens per turn, model must reason correctly about what to fetch.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>What to Take Away</h2>
+    <ul>
+        <li><strong>Lexical search first.</strong> ripgrep on exact identifiers is faster, cheaper, and more precise than embeddings for the majority of agent queries. Build this path first.</li>
+        <li><strong>Tree-sitter for structure.</strong> When you need to extract or navigate code structure &mdash; functions, classes, imports &mdash; use a real AST parser, not regex. tree-sitter handles incremental updates and error-tolerant parses.</li>
+        <li><strong>ctags for offline symbol indices; LSP for live sessions.</strong> The cost curves cross at roughly &ldquo;one repository open for &gt;5 minutes&rdquo;. Below that, ctags wins on startup time.</li>
+        <li><strong>Embeddings for conceptual queries only.</strong> voyage-code-3 leads the CoIR benchmark but still loses to ripgrep on identifier lookup. Use embeddings as a fallback, not a first pass.</li>
+        <li><strong>Call graphs quantify blast radius.</strong> Static AST-based graphs are fast and safe to build; they handle 90%+ of Rust/Go queries. Accept incompleteness for dynamic-dispatch languages.</li>
+        <li><strong>Layer your caches.</strong> mtime scan &rarr; tree-sitter AST &rarr; ctags SQLite &rarr; vector store. Invalidate each layer independently. Use SHA-256 content hashing as the key, not timestamps alone.</li>
+        <li><strong>Know the three agents&rsquo; approaches.</strong> Aider uses a static ctags repo-map with PageRank weighting; Cursor uses hybrid retrieval behind @-symbols; Claude Code does in-context tool-call retrieval. Each is a deliberate trade-off.</li>
+    </ul>
+
+    <div class="callout">
+        <div class="callout-label">Where to next</div>
+        <p>Deck 02 covers what happens after the context window is loaded: how agents actually make changes &mdash; search-replace blocks, unified diffs, multi-file atomic edits, and failure recovery when the model produces a bad patch.</p>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>Part of the <a href="https://github.com/BrendanJamesLynskey/LLM_Hub_Coding_Agents">Coding Agents Internals Series</a></p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;"><a href="https://github.com/BrendanJamesLynskey/LLM_Hub_Coding_Agents">Back to Series Index</a></p>
+</footer>
+<script>
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.slide').forEach(slide => {
+        slide.style.opacity = '0';
+        slide.style.transform = 'translateY(30px)';
+        slide.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(slide);
+    });
+</script>
+</body>
+</html>
